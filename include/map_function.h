@@ -16,7 +16,7 @@ namespace yamr
 		{
 			result_t result;
 
-			for (size_t i = 1; i < data_in.size(); ++i)
+			for (size_t i = 1; i <= data_in.size(); ++i)
 			{
 				result.emplace_back(data_in.substr(0, i));
 			}

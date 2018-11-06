@@ -19,7 +19,8 @@ namespace yamr
 			do
 			{
 				string_begins.push_back(in.tellg());
-			} while (std::getline(in, unused));
+			} 
+			while (std::getline(in, unused) && !in.eof());
 
 			single_block_size = string_begins.size() / block_count + 1;
 
@@ -32,17 +33,22 @@ namespace yamr
 		std::vector<std::string> read_strings(size_t block_number) const
 		{
 			std::vector<std::string> result;
-			std::ifstream in(fname, std::ios::binary);
-			std::string line;
-			in.seekg(offsets[block_number]);
-			while (block_number + 1 == offsets.size() || in.tellg() < offsets[block_number + 1])
+			if (offsets.size() > block_number)
 			{
-				if (in.eof()) break;
-				std::getline(in, line);
-				std::transform(line.begin(), line.end(), line.begin(), tolower);
-				result.push_back(line);
+				std::ifstream in(fname, std::ios::binary);
+				std::string line;
+				in.seekg(offsets[block_number]);
+				while (block_number + 1 == offsets.size() || in.tellg() < offsets[block_number + 1])
+				{
+					if (in.eof()) break;
+					std::getline(in, line);
+					line.erase(std::remove_if(line.begin(), line.end(), 
+							[](const char c) { return '\n' == c || '\r' == c; }), line.end());
+					std::transform(line.begin(), line.end(), line.begin(), tolower);
+					result.push_back(line);
+				}
+				in.close();
 			}
-			in.close();
 			return result;
 		}
 	private:
