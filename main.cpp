@@ -1,5 +1,6 @@
-#include <iostream>
 #include <string>
+#include <iostream>
+#include <exception>
 
 #include "map_function.h"
 #include "reduce_function.h"
@@ -17,15 +18,22 @@ int main(int argc, char const *argv[])
 	std::string fname = argv[1];
 	size_t M = std::stoi(argv[2]);
 	size_t R = std::stoi(argv[3]);	
-	
-	auto m = yamr::mapper<yamr::map_function>(fname, M).get_result();
-	auto r = yamr::reducer<yamr::reduce_function>(m, R).get_result();
-	yamr::reduce_function::result_t min_prefix = *std::min_element(r.begin(), r.end());
 
-	std::cout << "Found min prefix : " << min_prefix;
-	if (std::numeric_limits<size_t>::max() == min_prefix)
-		std::cout << " (not found)";
+	try
+	{
+		auto m = yamr::mapper<yamr::map_function>(fname, M).get_result();
+		auto r = yamr::reducer<yamr::reduce_function>(m, R).get_result();
+		yamr::reduce_function::result_t min_prefix = *std::min_element(r.begin(), r.end());
 
-	std::cout << std::endl;
+		std::cout << "Found min prefix : " << min_prefix;
+		if (std::numeric_limits<size_t>::max() == min_prefix)
+			std::cout << " (not found)";
+
+		std::cout << std::endl;
+	}
+	catch (std::exception& e)
+	{
+		std::cout << "main thread error: " << e.what() << '\n';
+	}
 	return 0;
 }
