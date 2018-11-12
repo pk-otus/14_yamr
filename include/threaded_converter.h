@@ -9,6 +9,7 @@
 #include "block_reader.h"
 #include "map_function.h"
 #include "reduce_function.h"
+#include <iostream>
 
 namespace yamr
 {

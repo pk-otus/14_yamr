@@ -17,7 +17,7 @@ namespace yamr
 
 			std::ifstream in(fname, std::ios::binary);
 			if (in.fail())
-				throw std::exception("cannot open data file");
+				throw std::invalid_argument("cannot open data file");
 
 			std::string unused;
 			do
