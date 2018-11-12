@@ -7,6 +7,7 @@
 #include "block_reader.h"
 #include "map_function.h"
 #include "reduce_function.h"
+#include <iostream>
 
 namespace yamr
 {
@@ -52,16 +53,23 @@ namespace yamr
 	inline map_function::result_t
 		threaded_converter<map_function>::thread_action(map_function::thread_in_t& data_in, size_t num)
 	{
-		map_function m;
-		auto strings = data_in.read_strings(num);
-
 		map_function::result_t result;
-		for (const std::string& s : strings)
+		try 
 		{
-			auto r = m(s);
-			result.insert(result.end(), r.begin(), r.end());
+			map_function m;
+			auto strings = data_in.read_strings(num);
+						
+			for (const std::string& s : strings)
+			{
+				auto r = m(s);
+				result.insert(result.end(), r.begin(), r.end());
+			}
+			std::sort(result.begin(), result.end());			
 		}
-		std::sort(result.begin(), result.end());
+		catch (std::exception& e)
+		{
+			std::cout << "mapper error: " << e.what() << '\n';
+		}
 		return result;
 	}
 
@@ -69,17 +77,25 @@ namespace yamr
 	inline reduce_function::result_t
 		threaded_converter<reduce_function>::thread_action(reduce_function::thread_in_t& data_in, size_t num)
 	{
-		std::sort(data_in.begin(), data_in.end(),
-			[](const auto& lhs, const auto& rhs)
+		auto result = std::numeric_limits<reduce_function::result_t>::max();
+		try
 		{
-			int64_t diff = lhs.size() - rhs.size();
-			return 0 != diff ? diff < 0 : lhs < rhs;
-		});
+			std::sort(data_in.begin(), data_in.end(),
+				[](const auto& lhs, const auto& rhs)
+			{
+				int64_t diff = lhs.size() - rhs.size();
+				return 0 != diff ? diff < 0 : lhs < rhs;
+			});
 
-		auto result = reduce_function()(data_in);
-		auto fout = std::ofstream("reduce_" + std::to_string(num));
-		fout << result;
-		fout.close();
+			result = reduce_function()(data_in);
+			auto fout = std::ofstream("reduce_" + std::to_string(num));
+			fout << result;
+			fout.close();			
+		}
+		catch (std::exception& e)
+		{
+			std::cout << "reducer error: " << e.what() << '\n';
+		}
 		return result;
 	}
 }

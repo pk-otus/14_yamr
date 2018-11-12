@@ -15,6 +15,9 @@ namespace yamr
 			offset_vector_t string_begins;
 
 			std::ifstream in(fname, std::ios::binary);
+			if (in.fail())
+				throw std::exception("cannot open data file");
+
 			std::string unused;
 			do
 			{
